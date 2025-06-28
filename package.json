@@ -1,0 +1,36 @@
+{
+  "name": "phenix-tower-virtual-tour",
+  "version": "1.0.0",
+  "description": "360° Interactive Virtual Tour of Phenix Tower",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8000 -o",
+    "dev": "npx live-server . --port=8000 --open=/",
+    "validate": "npx html-validate index.html",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "360",
+    "panorama",
+    "virtual-tour",
+    "marzipano",
+    "interactive",
+    "real-estate",
+    "tourism"
+  ],
+  "author": "Abdalkaderdev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Abdalkaderdev/phenix.git"
+  },
+  "homepage": "https://abdalkaderdev.github.io/phenix/",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2",
+    "html-validate": "^8.15.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 

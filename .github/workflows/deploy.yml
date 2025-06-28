@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +17,66 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Build and test job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      - name: Validate HTML
+        run: |
+          # Check if index.html exists and is valid
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html not found!"
+            exit 1
+          fi
+          echo "✅ index.html found"
+          
+          # Check if required files exist
+          required_files=("index.js" "style.css" "data.js")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ $file not found!"
+              exit 1
+            fi
+            echo "✅ $file found"
+          done
+      
+      - name: Check file sizes
+        run: |
+          echo "📊 File sizes:"
+          ls -lh index.html index.js style.css data.js
+          
+          # Check if tiles directory exists and has content
+          if [ -d "tiles" ]; then
+            echo "✅ Tiles directory found"
+            tile_count=$(find tiles -name "*.jpg" | wc -l)
+            echo "📸 Found $tile_count tile images"
+          else
+            echo "⚠️  Tiles directory not found"
+          fi
+
+  # Deploy job
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -34,4 +95,14 @@ jobs:
           
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 
+        uses: actions/deploy-pages@v4
+      
+      - name: Deployment status
+        run: |
+          if [ "${{ steps.deployment.outputs.page_url }}" != "" ]; then
+            echo "✅ Deployment successful!"
+            echo "🌐 Your site is live at: ${{ steps.deployment.outputs.page_url }}"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi 
